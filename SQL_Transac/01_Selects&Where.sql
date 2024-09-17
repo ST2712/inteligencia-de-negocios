@@ -125,3 +125,134 @@ Select LastName as [Apellido],
 FirstName as [Nombre]
 from Employees;
 
+
+select
+concat(FirstName, ' ', LastName) as [fullname],
+country as [pais], city as [ciudad]
+from Employees
+where city in('seattle', 'london');
+GO
+
+select
+(FirstName +  ' ' + LastName) as [fullname],
+country as [pais], city as [ciudad]
+from Employees
+where city in('seattle', 'london');
+GO
+
+select
+concat(FirstName, ' ', LastName) as [fullname],
+country as [pais],
+city as [ciudad]
+from Employees
+where city  = 'seatle' or city='london';
+GO
+
+-- Tipos de joins (inner, left, right, full)
+-- Seleccionar todos los productos con su categoria
+-- Mostrando el nombre del producto y el nombre de la categoria
+
+--Alias de tabla
+select pr.ProductID as [Numero producto],
+pr.ProductName as [Nombre del producto],
+ca.CategoryID as [Numero de categoria],
+ca.CategoryName as [Nombre de la categoria]
+from Products as pr
+inner join Categories as ca
+on pr.CategoryID = ca.CategoryID;
+GO
+
+-- Seleccionar todos los productos mostrando:
+-- Nombre del producto y nombre del proveedor (supplier)
+Select pr.ProductName as [Nombre producto],
+sp.CompanyName as [Nombre proveedor]
+from Products as pr
+inner join Suppliers as sp
+on pr.SupplierID = sp.SupplierID;
+
+-- Seleccionar los nombres de los productos que han sido ordenados y sus subtotales
+Select pr.ProductName as [Nombre producto],
+(od.Quantity*od.UnitPrice) as [Subtotal]
+from Products as pr
+inner join [Order Details] as od
+on pr.ProductID = od.ProductID;
+
+-- Seleccionar los nombres de los productos vendidos
+-- El nombre de su categoria, el precio que se vendio
+-- La cantidad vendida y su subtotal
+
+SELECT 
+    pr.ProductName AS [Nombre producto],
+    ca.CategoryName AS [Nombre categoría],
+    od.UnitPrice AS [Precio producto],
+    od.Quantity AS [Cantidad vendida],
+    (od.Quantity * od.UnitPrice) AS [Subtotal]
+FROM Products AS pr
+INNER JOIN [Order Details] AS od 
+    ON pr.ProductID = od.ProductID
+INNER JOIN Categories AS ca
+    ON pr.CategoryID = ca.CategoryID;
+GO
+
+-- Seleccionar los nombres de los productos vendidos
+-- El nombre de su categoria, el nombre completo del empleado que lo realizo
+-- la fecha de venta, el precio de venta, cantidad y subtotal, para las categorias
+-- Beverages, Condiments y seafood
+-- La cantidad vendida y su subtotal
+select p.ProductName as [Nombre producto],
+c.CategoryName as [Nombre categoria],
+o.OrderDate as [Fecha de orden],
+(e.FirstName+ ' ' + e.LastName) as [Nombre vendedor],
+(od.Quantity*od.UnitPrice) as [Subtotal],
+od.Quantity as [Cantidad],
+od.UnitPrice as [Precio unitario]
+ from Orders as o
+ inner join Employees as e
+ on o.EmployeeID = e.EmployeeID
+ inner join [Order Details] as od
+ on o.OrderID = od.OrderID
+ inner join Products as p
+ on od.ProductID = p.ProductID
+ inner join Categories as c
+ on c.CategoryID = p.CategoryID
+ where c.CategoryName in('Beverages','Condiments','Seafood');
+ GO
+
+ --Crear base de datos
+ Create database stagenorthwind;
+ go
+
+ use stagenorthwind;
+
+ if not exists (select 1 from sys.tables where name = 'ProductsStage')
+
+ Begin
+	Create table ProductsStage(
+	productoId INT not null identity(1,1),
+	NombreProducto nVarchar(40) not null,
+	PrecioUnitario MONEY not null,
+	stock smallint not null,
+	CategoriaId int not null,
+	constraint pk_ProductsStage
+	primary key(productoId)
+	)
+END;
+select * from ProductsStage;
+
+-- Crear una tabla a partir de una consulta
+select top 0 CategoryID as [CategoriaID],
+CategoryName as [NombreCategoria]
+into stagenorthwind.dbo.categoriesStage
+from NORTHWND.dbo.Categories;
+
+alter table categoriesStage
+alter column [CategoriaId] int not null;
+go
+
+alter table categoriesStage
+add constraint pk_categoriesStage
+primary key(CategoriaID);
+go
+
+select * from categoriesStage;
+go
